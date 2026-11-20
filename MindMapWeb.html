@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindMap fNIRS Simulator & Study Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="app-header py-4 shadow-md backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="#" class="block focus:outline-none">
+                    <img src="logoMM.png" alt="MindMap fNIRS Logo" class="w-10 h-10 rounded-xl shadow-lg shadow-blue-500/30 object-cover">
+                </a>
+                <div>
+                    <h1 class="text-xl font-bold flex items-center gap-2">
+                        MindMap fNIRS Simulator
+                    </h1>
+                    <p class="text-xs text-muted">Prefrontal Cortex Hemodynamic Encoding Tracker</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <span id="user-status-badge" class="text-xs px-3 py-1.5 rounded-full font-medium items-center gap-2 status-success hidden sm:flex">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Optode Array Calibrated
+                </span>
+                <div id="auth-area" class="flex items-center gap-2"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full grid gap-6">
+        
+        <section class="app-card p-6 rounded-2xl shadow-xl">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-blue"></i> Study Method Benchmark & Timing
+                </h2>
+                <div class="flex items-center gap-2">
+                    <span id="json-status" class="text-xs font-mono text-muted">Loading JSON...</span>
+                    <button id="retry-json-btn" class="hidden text-xs text-white px-2.5 py-1 rounded-lg transition font-medium cursor-pointer flex items-center gap-1 app-button-blue">
+                        <i class="fa-solid fa-rotate-right"></i> Retry
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid gap-4 mb-6">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider mb-2 text-muted">Target Cognitive Protocol</label>
+                    <div class="relative">
+                        <select id="method-select" disabled class="app-select w-full rounded-xl px-4 py-3 pr-12 text-sm font-medium focus:outline-none transition cursor-not-allowed opacity-60 appearance-none">
+                        </select>
+                        <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted">
+                            <i class="fa-solid fa-chevron-down text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="app-subpanel grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-xl">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider mb-1 text-muted">Custom Scan Duration (Mins)</label>
+                        <input type="number" id="custom-duration-input" min="5" max="120" step="1" onkeydown="return event.key !== '.' && event.key !== ',' && event.key !== 'e' && event.key !== '-'" value="30" class="app-input w-full text-white rounded-lg p-2.5 text-sm outline-none font-mono">
+                        <p id="duration-error" class="text-[11px] text-red-400 mt-1 hidden"><i class="fa-solid fa-triangle-exclamation"></i> Must be between 5 and 120 minutes.</p>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-muted">Recommended Scan Duration</span>
+                        <span id="recommended-duration-display" class="text-sm font-bold text-blue mt-1 flex items-center gap-2">
+                            <i class="fa-solid fa-stopwatch"></i> -- mins
+                        </span>
+                    </div>
+                </div>
+
+                <div id="method-details-box" class="app-subpanel rounded-xl p-4 text-xs grid gap-2">
+                    <p id="detail-desc"><span class="font-semibold text-muted">Description:</span> Select a method from your JSON file to view target protocol details.</p>
+                    <div class="flex flex-wrap gap-4 mt-1 text-muted">
+                        <span id="detail-duration"><i class="fa-solid fa-clock text-blue"></i> -- mins</span>
+                        <span id="detail-delay"><i class="fa-solid fa-hourglass-half text-warning"></i> Test Delay: -- hr(s)</span>
+                        <span id="detail-base"><i class="fa-solid fa-layer-group text-indigo-400"></i> Baseline PFC Load: -- µM</span>
+                    </div>
+                </div>
+            </div>
+
+            <button id="sim-btn" disabled class="w-full font-semibold py-3.5 px-6 rounded-xl transition flex items-center justify-center gap-2 cursor-not-allowed text-sm opacity-70 app-button-blue">
+                <i id="sim-btn-icon" class="fa-solid fa-spinner animate-spin"></i> <span id="sim-btn-text">Initializing Config...</span>
+            </button>
+        </section>
+
+        <section id="chart-section" class="app-card p-6 rounded-2xl shadow-xl">
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-2">
+                <div>
+                    <h2 class="text-lg font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-blue"></i> Multi-Signal fNIRS Hemodynamic Response Profile
+                    </h2>
+                    <p class="text-xs mt-1 text-muted">Comparing real-time raw optode signals against noise-canceled cortical curves and baseline research models</p>
+                </div>
+            </div>
+            
+            <div id="chart-container" class="app-subpanel relative h-64 sm:h-80 md:h-96 w-full mt-4 p-4 rounded-xl flex items-center justify-center">
+                <div id="chart-placeholder" class="text-center text-xs italic px-4 text-muted">
+                    <i class="fa-solid fa-chart-area text-2xl mb-2 block"></i>
+                    Awaiting simulation run. Select a protocol and click <strong>"Start fNIRS Neural Simulation"</strong> above to generate optode telemetry and hemodynamic curves.
+                </div>
+                <canvas id="brainChart" class="hidden"></canvas>
+            </div>
+        </section>
+
+        <section id="active-session-section" class="app-card p-6 rounded-2xl shadow-xl transition-all duration-300">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-md bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs"><i class="fa-solid fa-chart-simple"></i></span> Active Session Summary
+                </h2>
+                <span id="session-status-badge" class="text-xs px-3 py-1 rounded-lg font-medium text-muted">Ready</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div class="app-subpanel p-4 rounded-xl">
+                    <p class="text-xs font-medium text-muted">PFC Oxygenated Load (ΔHbO₂)</p>
+                    <p id="summary-load" class="text-xl font-bold mt-2">-- <span class="text-xs font-normal text-muted">µM</span></p>
+                </div>
+                <div class="app-subpanel p-4 rounded-xl">
+                    <p class="text-xs font-medium text-muted">Session Duration</p>
+                    <p id="summary-duration" class="text-xl font-bold mt-2">-- <span class="text-xs font-normal text-muted">mins</span></p>
+                </div>
+                <div class="app-subpanel p-4 rounded-xl">
+                    <p class="text-xs font-medium text-muted">Delayed Retention Check</p>
+                    <p id="summary-delay" class="text-xl font-bold mt-2">-- <span class="text-xs font-normal text-muted">hr(s)</span></p>
+                </div>
+            </div>
+
+            <div class="app-subpanel p-3 rounded-xl flex items-center justify-between text-xs mb-4 text-muted">
+                <span class="flex items-center gap-2"><i class="fa-solid fa-filter text-warning"></i> Signal Processing Pipelines Active:</span>
+                <span class="font-mono">Short-Channel Regression + Bandpass (0.01-0.1Hz)</span>
+            </div>
+
+            <button id="quiz-btn" disabled class="w-full font-semibold py-3 px-6 rounded-xl transition flex items-center justify-center gap-2 text-sm cursor-not-allowed app-button-emerald">
+                <i class="fa-solid fa-rotate-left"></i> Simulate Quiz & Efficiency
+            </button>
+        </section>
+
+        <section class="app-card p-6 rounded-2xl shadow-xl">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                <h2 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-blue"></i> Simulation & Efficiency History Log
+                </h2>
+                <div class="flex flex-wrap items-center gap-4">
+                    <label for="save-history-checkbox" class="text-xs transition flex items-center gap-2 cursor-pointer text-muted select-none hover:text-white">
+                        <input type="checkbox" id="save-history-checkbox" class="app-checkbox cursor-pointer">
+                        <span><i class="fa-solid fa-floppy-disk"></i> Save the sessions history</span>
+                    </label>
+                    <button id="clear-logs-btn" class="text-xs transition flex items-center gap-1.5 cursor-pointer text-muted">
+                        <i class="fa-solid fa-trash-can"></i> Clear Logs
+                    </button>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="app-table">
+                    <thead>
+                        <tr>
+                            <th class="p-3">Timestamp</th>
+                            <th class="p-3">Study Method</th>
+                            <th class="p-3">Neural Load (PFC HbO)</th>
+                            <th class="p-3">Test Type</th>
+                            <th class="p-3">Retention Score</th>
+                            <th class="p-3">Cognitive Efficiency Index</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-log-body">
+                        <tr id="empty-log-row">
+                            <td colspan="6" class="p-6 text-center italic text-muted">No simulation logs recorded yet. Run a session above to generate data.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <div id="privacy-toast" role="dialog" aria-live="polite" aria-label="Data Privacy and Security Notice" class="privacy-toast fixed bottom-4 right-4 left-4 sm:left-auto z-40 shadow-2xl rounded-xl p-4 sm:max-w-md hidden">
+        <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start gap-3">
+                <i class="fa-solid fa-shield-halved text-success text-lg mt-0.5 shrink-0"></i>
+                <div class="text-xs leading-relaxed">
+                    <p class="font-semibold text-sm mb-1">Data Privacy & Security</p>
+                    <p>Your personal data is collected solely for analytical purposes and is stored securely in accordance with strict privacy standards.</p>
+                </div>
+            </div>
+            <button id="close-privacy-btn" type="button" disabled aria-label="Close privacy notice" class="privacy-close-btn w-7 h-7 flex items-center justify-center text-base font-bold shrink-0 cursor-pointer">
+                &times;
+            </button>
+        </div>
+        <div class="mt-3 pt-3 border-t border-slate-800">
+            <label for="privacy-agree-checkbox" class="flex items-center gap-2 text-xs text-muted cursor-pointer select-none">
+                <input type="checkbox" id="privacy-agree-checkbox" class="app-checkbox cursor-pointer">
+                <span>I have read and agree to the privacy and data security terms.</span>
+            </label>
+        </div>
+    </div>
+
+    <div id="quiz-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+        <div class="app-card border w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-all">
+            <div class="app-header border-b px-6 py-4 flex items-center justify-between">
+                <h3 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-stopwatch text-success"></i> Delayed Knowledge Check</h3>
+                <button id="close-quiz" class="text-xl font-bold cursor-pointer text-muted">&times;</button>
+            </div>
+            
+            <div class="app-subpanel p-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+                <div class="flex flex-col justify-between">
+                    <div class="grid gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider mb-1 text-muted">Select Test Type:</label>
+                            <select id="test-type" class="app-input w-full text-white border rounded-lg p-2.5 text-sm outline-none">
+                                <option value="Online Test">Online Test / Quiz</option>
+                                <option value="Flashcards">Flashcards</option>
+                                <option value="Practice Exam">Practice Exam</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider mb-1 text-muted">Total Items / Questions / Cards:</label>
+                            <input type="number" id="total-items" min="1" max="300" step="1" onkeydown="return event.key !== '.' && event.key !== ',' && event.key !== 'e' && event.key !== '-'" value="20" class="app-input w-full text-white border rounded-lg p-2.5 text-sm outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider mb-1 text-muted">Number Answered Correctly:</label>
+                            <input type="number" id="correct-items" min="0" step="1" onkeydown="return event.key !== '.' && event.key !== ',' && event.key !== 'e' && event.key !== '-'" value="16" class="app-input w-full text-white border rounded-lg p-2.5 text-sm outline-none">
+                            <p id="quiz-input-error" class="text-[11px] text-red-400 mt-1 hidden"><i class="fa-solid fa-triangle-exclamation"></i> Correct count cannot exceed total items or be negative.</p>
+                        </div>
+                    </div>
+                    <button id="submit-quiz" class="w-full text-white font-semibold py-3 rounded-lg transition cursor-pointer shadow-lg flex items-center justify-center gap-2 app-button-blue mt-4">
+                        <i class="fa-solid fa-calculator"></i> Calculate Efficiency
+                    </button>
+                </div>
+
+                <div class="app-card border rounded-xl p-5 flex flex-col justify-between">
+                    <div id="quiz-results-empty" class="h-full flex flex-col items-center justify-center text-center p-4">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center mb-3 text-lg text-muted">
+                            <i class="fa-solid fa-chart-pie"></i>
+                        </div>
+                        <h4 class="text-sm font-semibold mb-1 text-muted">Results Pending</h4>
+                        <p class="text-xs text-muted">Enter your score parameters on the left and click <strong>"Calculate Efficiency"</strong> to generate your metrics.</p>
+                    </div>
+
+                    <div id="quiz-results-active" class="hidden flex-col gap-4">
+                        <h4 class="text-xs font-bold uppercase tracking-wider border-b pb-2 flex items-center gap-2 text-muted">
+                            <i class="fa-solid fa-square-poll-vertical text-success"></i> Performance Summary
+                        </h4>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="app-subpanel p-3 rounded-lg border">
+                                <span class="text-[11px] font-medium block text-muted">Retention Score</span>
+                                <span id="res-retention-score" class="text-lg font-bold text-warning font-mono mt-0.5 block">--%</span>
+                            </div>
+                            <div class="app-subpanel p-3 rounded-lg border">
+                                <span class="text-[11px] font-medium block text-muted">Cognitive Efficiency</span>
+                                <span id="res-efficiency-index" class="text-lg font-bold text-success font-mono mt-0.5 block">--%</span>
+                            </div>
+                        </div>
+
+                        <div class="app-subpanel border p-3.5 rounded-lg text-xs grid gap-1">
+                            <span class="font-semibold flex items-center gap-1.5 text-blue">
+                                <i class="fa-solid fa-lightbulb"></i> Neural Pacing Advice
+                            </span>
+                            <p id="res-recommendation-text" class="leading-relaxed mt-0.5 text-muted">--</p>
+                        </div>
+
+                        <button id="modal-done-btn" class="w-full font-semibold py-2.5 rounded-lg transition text-xs cursor-pointer mt-1 app-button-emerald">
+                            Done / Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="auth-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+        <div class="app-card border w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            <div class="app-header border-b px-6 py-4 flex items-center justify-between">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-user-shield text-blue"></i> <span id="auth-modal-title">Sign In</span>
+                </h3>
+                <button id="close-auth" class="text-xl font-bold cursor-pointer text-muted" aria-label="Close">&times;</button>
+            </div>
+
+            <div class="p-6 grid gap-4">
+                <div class="grid grid-cols-2 gap-2 app-subpanel p-1 rounded-xl">
+                    <button type="button" id="tab-signin" class="py-2 rounded-lg text-sm font-semibold cursor-pointer">Sign In</button>
+                    <button type="button" id="tab-signup" class="py-2 rounded-lg text-sm font-semibold cursor-pointer text-muted">Create Account</button>
+                </div>
+
+                <form id="auth-form" class="grid gap-3" novalidate>
+                    <div>
+                        <label for="auth-email" class="block text-xs font-bold uppercase tracking-wider mb-1 text-muted">Email</label>
+                        <input type="email" id="auth-email" autocomplete="email" placeholder="you@example.com" class="app-input w-full rounded-lg p-2.5 text-sm outline-none">
+                    </div>
+                    <div>
+                        <label for="auth-password" class="block text-xs font-bold uppercase tracking-wider mb-1 text-muted">Password</label>
+                        <input type="password" id="auth-password" autocomplete="current-password" placeholder="At least 8 characters" class="app-input w-full rounded-lg p-2.5 text-sm outline-none">
+                    </div>
+                    <div id="auth-confirm-wrap" class="hidden">
+                        <label for="auth-confirm" class="block text-xs font-bold uppercase tracking-wider mb-1 text-muted">Confirm Password</label>
+                        <input type="password" id="auth-confirm" autocomplete="new-password" placeholder="Repeat your password" class="app-input w-full rounded-lg p-2.5 text-sm outline-none">
+                    </div>
+                    <p id="auth-message" class="hidden"></p>
+                    <button type="submit" id="auth-submit" class="w-full py-2.5 rounded-lg text-sm cursor-pointer app-button-blue">Sign In</button>
+                </form>
+
+                <div class="flex items-center gap-3">
+                    <span class="flex-grow border-t" style="border-color: var(--border-color)"></span>
+                    <span class="text-[11px] uppercase tracking-wider text-muted">or</span>
+                    <span class="flex-grow border-t" style="border-color: var(--border-color)"></span>
+                </div>
+
+                <p class="text-[11px] leading-relaxed text-center text-muted">
+                    Email + password accounts are created specifically for MindMap fNIRS.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let studyMethods = [];
+        let selectedMethod = null;
+        let currentLoad = 0;
+        let chartInstance = null;
+        let sessionHistory = [];
+        let activeSession = null;
+
+        const HISTORY_STORAGE_KEY = 'mindmap_session_history';
+        const SAVE_HISTORY_PREF_KEY = 'mindmap_save_history';
+        const PRIVACY_ACK_KEY = 'mindmap_privacy_acknowledged';
+
+        function initPrivacyNotice() {
+            const toast = document.getElementById('privacy-toast');
+            const agreeCheckbox = document.getElementById('privacy-agree-checkbox');
+            const closeBtn = document.getElementById('close-privacy-btn');
+            
+            if (!toast || !agreeCheckbox || !closeBtn) return;
+
+            let acknowledged = false;
+            try {
+                acknowledged = localStorage.getItem(PRIVACY_ACK_KEY) === 'true';
+            } catch (error) {
+                acknowledged = false;
+            }
+
+            if (!acknowledged) {
+                toast.classList.remove('hidden');
+            }
+
+            agreeCheckbox.onchange = () => {
+                closeBtn.disabled = !agreeCheckbox.checked;
+            };
+
+            closeBtn.onclick = () => {
+                if (!agreeCheckbox.checked) return;
+                toast.classList.add('hidden');
+                try {
+                    localStorage.setItem(PRIVACY_ACK_KEY, 'true');
+                } catch (error) {
+                    console.error('Failed to save privacy acknowledgement:', error);
+                }
+            };
+        }
+
+        function isHistorySavingEnabled() {
+            const checkbox = document.getElementById('save-history-checkbox');
+            return !!(checkbox && checkbox.checked);
+        }
+
+        const HISTORY_TABLE = 'session_history';
+        let historyLoadToken = 0;
+
+        function isCloudHistoryAvailable() {
+            return !!(supabaseClient && currentUser);
+        }
+
+        function toHistoryRow(item) {
+            return {
+                user_id: currentUser.id,
+                timestamp: item.timestamp,
+                method: item.method,
+                load: item.load,
+                test_type: item.testType,
+                retention: item.retention,
+                efficiency: item.efficiency
+            };
+        }
+
+        function fromHistoryRow(row) {
+            return {
+                id: row.id,
+                timestamp: row.timestamp,
+                method: row.method,
+                load: row.load,
+                testType: row.test_type,
+                retention: row.retention,
+                efficiency: row.efficiency
+            };
+        }
+
+        async function fetchCloudHistory() {
+            const { data, error } = await supabaseClient
+                .from(HISTORY_TABLE)
+                .select('id, timestamp, method, load, test_type, retention, efficiency, created_at')
+                .order('created_at', { ascending: false });
+            if (error) throw error;
+            return (data || []).map(fromHistoryRow);
+        }
+
+        async function saveHistoryToStorage() {
+            if (!isHistorySavingEnabled()) return;
+
+            if (isCloudHistoryAvailable()) {
+                const pending = sessionHistory.filter(item => !item.id);
+                for (const item of pending) {
+                    const { data, error } = await supabaseClient
+                        .from(HISTORY_TABLE)
+                        .insert(toHistoryRow(item))
+                        .select('id')
+                        .single();
+                    if (error) {
+                        console.error('Failed to sync session to your account:', error);
+                        return;
+                    }
+                    item.id = data.id;
+                }
+                return;
+            }
+
+            try {
+                localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(sessionHistory));
+            } catch (error) {
+                console.error('Failed to save session history:', error);
+            }
+        }
+
+        async function clearStoredHistory() {
+            if (isCloudHistoryAvailable()) {
+                const { error } = await supabaseClient
+                    .from(HISTORY_TABLE)
+                    .delete()
+                    .eq('user_id', currentUser.id);
+                if (error) console.error('Failed to clear account session history:', error);
+            }
+
+            try {
+                localStorage.removeItem(HISTORY_STORAGE_KEY);
+            } catch (error) {
+                console.error('Failed to clear stored session history:', error);
+            }
+        }
+
+        async function restoreHistoryState() {
+            const token = ++historyLoadToken;
+            const checkbox = document.getElementById('save-history-checkbox');
+            let saving = false;
+
+            try {
+                saving = localStorage.getItem(SAVE_HISTORY_PREF_KEY) === 'true';
+            } catch (error) {
+                saving = false;
+            }
+
+            checkbox.checked = saving;
+
+            if (!saving) {
+                return;
+            }
+
+            if (isCloudHistoryAvailable()) {
+                try {
+                    const cloudHistory = await fetchCloudHistory();
+                    if (token !== historyLoadToken) return;
+                    const existingIds = new Set(sessionHistory.map(h => h.id));
+                    const newItems = cloudHistory.filter(h => !existingIds.has(h.id));
+                    sessionHistory = [...newItems, ...sessionHistory];
+                } catch (error) {
+                    console.error('Failed to load session history from your account:', error);
+                }
+            } else {
+                try {
+                    const stored = JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY) || '[]');
+                    if (Array.isArray(stored)) {
+                        const existingTimestamps = new Set(sessionHistory.map(h => h.timestamp));
+                        const newItems = stored.filter(h => !existingTimestamps.has(h.timestamp));
+                        sessionHistory = [...newItems, ...sessionHistory];
+                    }
+                } catch (error) {
+                }
+            }
+
+            if (token !== historyLoadToken) return;
+            updateHistoryLog();
+        }
+
+        document.getElementById('save-history-checkbox').onchange = async (e) => {
+            const saving = e.target.checked;
+            
+            try {
+                localStorage.setItem(SAVE_HISTORY_PREF_KEY, saving ? 'true' : 'false');
+            } catch (error) {
+                console.error('Failed to save history preference:', error);
+            }
+
+            if (saving) {
+                await saveHistoryToStorage();
+                await restoreHistoryState();
+            } else {
+                await clearStoredHistory();
+            }
+        };
+
+        async function loadStudyData() {
+            const statusEl = document.getElementById('json-status');
+            const retryBtn = document.getElementById('retry-json-btn');
+            const simBtn = document.getElementById('sim-btn');
+            const simBtnIcon = document.getElementById('sim-btn-icon');
+            const simBtnText = document.getElementById('sim-btn-text');
+            const selectEl = document.getElementById('method-select');
+
+            statusEl.innerText = "Loading JSON...";
+            retryBtn.classList.add('hidden');
+            
+            try {
+                const response = await fetch('mindmap_brain_activity_tests.json');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.study_methods && data.study_methods.length > 0) {
+                        studyMethods = data.study_methods;
+                        statusEl.innerText = "JSON Config Loaded (" + studyMethods.length + " methods)";
+                        
+                        selectEl.disabled = false;
+                        selectEl.className = "app-select w-full rounded-xl px-4 py-3 pr-12 text-sm font-medium focus:outline-none transition cursor-pointer appearance-none";
+                        
+                        simBtn.disabled = false;
+                        simBtn.className = "w-full font-semibold py-3.5 px-6 rounded-xl transition shadow-lg flex items-center justify-center gap-2 cursor-pointer text-sm app-button-blue";
+                        simBtnIcon.className = "fa-solid fa-play";
+                        simBtnText.innerText = "Start fNIRS Neural Simulation";
+
+                        populateMethodSelect();
+                    } else {
+                        throw new Error("JSON file contained no study methods.");
+                    }
+                } else {
+                    throw new Error("HTTP Status " + response.status);
+                }
+            } catch (error) {
+                statusEl.innerText = "JSON Load Failed";
+                retryBtn.classList.remove('hidden');
+                simBtnIcon.className = "fa-solid fa-lock";
+                simBtnText.innerText = "Simulation Locked (Config Missing)";
+                console.error("Failed to load JSON study methods:", error);
+            }
+        }
+
+        const retryJsonBtn = document.getElementById('retry-json-btn');
+        if (retryJsonBtn) {
+            retryJsonBtn.onclick = loadStudyData;
+        }
+
+        function populateMethodSelect() {
+            const selectEl = document.getElementById('method-select');
+            selectEl.innerHTML = '';
+            
+            if (studyMethods.length === 0) return;
+
+            studyMethods.forEach((m) => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                opt.textContent = `${m.name}`;
+                opt.className = "text-white";
+                selectEl.appendChild(opt);
+            });
+
+            selectedMethod = studyMethods[0];
+            updateMethodDetails(selectedMethod);
+
+            selectEl.onchange = (e) => {
+                selectedMethod = studyMethods.find(m => m.id === e.target.value) || studyMethods[0];
+                updateMethodDetails(selectedMethod);
+            };
+        }
+
+        function updateMethodDetails(m) {
+            if (!m) return;
+            const recDuration = m.recommended_duration_minutes || m.duration_minutes || 30;
+            
+            document.getElementById('custom-duration-input').value = recDuration;
+            document.getElementById('recommended-duration-display').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${recDuration} mins`;
+
+            const desc = m.description || "Continuous listening or engaged study using target cognitive protocol.";
+            document.getElementById('detail-desc').innerHTML = `<span class="font-semibold text-muted">Description:</span> ${desc}`;
+            document.getElementById('detail-duration').innerHTML = `<i class="fa-solid fa-clock text-blue"></i> ${recDuration} mins`;
+            document.getElementById('detail-delay').innerHTML = `<i class="fa-solid fa-hourglass-half text-warning"></i> Test Delay: ${m.test_delay_hours || 1} hr(s)`;
+            document.getElementById('detail-base').innerHTML = `<i class="fa-solid fa-layer-group text-indigo-400"></i> Baseline PFC Load: ${(m.baseline_activation_pfc || 2.0).toFixed(1)} µM`;
+        }
+
+        const durationInput = document.getElementById('custom-duration-input');
+        const durationErr = document.getElementById('duration-error');
+        
+        function validateDuration() {
+            let val = parseInt(durationInput.value, 10);
+            if (isNaN(val) || val < 5 || val > 120) {
+                durationErr.classList.remove('hidden');
+                if (isNaN(val)) {
+                    durationInput.value = 30;
+                } else {
+                    if (val < 5) durationInput.value = 5;
+                    if (val > 120) durationInput.value = 120;
+                }
+            } else {
+                durationInput.value = val;
+                durationErr.classList.add('hidden');
+            }
+        }
+        if (durationInput) {
+            durationInput.onblur = validateDuration;
+            durationInput.oninput = () => {
+                let val = parseInt(durationInput.value, 10);
+                if (!isNaN(val)) {
+                    durationInput.value = val;
+                }
+            };
+        }
+
+        const simBtn = document.getElementById('sim-btn');
+        if (simBtn) {
+            simBtn.onclick = () => {
+                if (!selectedMethod) {
+                    alert("Please select a valid study method first.");
+                    return;
+                }
+                
+                validateDuration();
+                const customDuration = parseInt(durationInput.value, 10) || selectedMethod.duration_minutes || 30;
+                const baseVal = selectedMethod.baseline_activation_pfc || 2.0;
+                currentLoad = baseVal + (Math.random() * 0.25 - 0.1);
+                
+                const delay = selectedMethod.test_delay_hours || 1;
+                const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                activeSession = {
+                    timestamp: timestamp,
+                    methodName: selectedMethod.name,
+                    duration: customDuration,
+                    delay: delay,
+                    load: currentLoad
+                };
+
+                document.getElementById('summary-load').innerHTML = `${currentLoad.toFixed(2)} <span class="text-xs font-normal text-muted">µM</span>`;
+                document.getElementById('summary-duration').innerHTML = `${customDuration} <span class="text-xs font-normal text-muted">mins</span>`;
+                document.getElementById('summary-delay').innerHTML = `${delay} <span class="text-xs font-normal text-muted">hr(s)</span>`;
+                
+                const badge = document.getElementById('session-status-badge');
+                badge.className = "text-xs px-3 py-1 rounded-lg font-medium status-success";
+                badge.innerText = "Completed";
+
+                const quizBtnEl = document.getElementById('quiz-btn');
+                quizBtnEl.disabled = false;
+                quizBtnEl.className = "w-full font-semibold py-3 px-6 rounded-xl transition flex items-center justify-center gap-2 text-sm cursor-pointer shadow-lg app-button-emerald animate-pulse";
+
+                document.getElementById('chart-placeholder').classList.add('hidden');
+                document.getElementById('brainChart').classList.remove('hidden');
+                renderChart(customDuration);
+
+                document.getElementById('chart-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            };
+        }
+
+        function renderChart(scanDuration) {
+            const ctx = document.getElementById('brainChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+
+            const duration = scanDuration || (selectedMethod ? selectedMethod.duration_minutes || 30 : 30);
+            const points = 50;
+            const labels = Array.from({length: points}, (_, i) => `${Math.round(i * (duration * 60 / points))}s`);
+            const expected = [], clean = [], real = [];
+            const baseVal = selectedMethod ? selectedMethod.baseline_activation_pfc || 2.0 : 2.0;
+
+            for (let i = 0; i < points; i++) {
+                const p = i / points;
+                let prof = baseVal + 0.4 * Math.exp(-12 * Math.pow(p - 0.15, 2)) - 0.5 * p;
+                if (selectedMethod && selectedMethod.id && selectedMethod.id.includes('reading')) prof = baseVal + 0.8 * Math.sin(p * Math.PI) * (1 - 0.2 * p);
+                if (selectedMethod && selectedMethod.id && selectedMethod.id.includes('with_notes')) prof = baseVal + 0.6 * Math.abs(Math.sin(p * Math.PI * 3));
+                
+                const expVal = Math.max(0.3, prof);
+                const cleanVal = expVal + 0.04 * Math.sin(p * Math.PI * 12);
+                const noise = (p > 0.28 && p < 0.35) || (p > 0.65 && p < 0.72) ? (Math.random() * 0.7 - 0.35) : (Math.random() * 0.1 - 0.05);
+                const realVal = cleanVal + noise + 0.08 * Math.sin(2 * Math.PI * 1.2 * i);
+
+                expected.push(expVal);
+                clean.push(cleanVal);
+                real.push(realVal);
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Raw (Mayer & Motion Noise)', data: real, borderColor: '#f56565', borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
+                        { label: 'Filtered Cortical HbO', data: clean, borderColor: '#38bdf8', borderWidth: 2.5, pointRadius: 0, tension: 0.2 },
+                        { label: 'Benchmark Model', data: expected, borderColor: '#4ade80', borderWidth: 2, borderDash: [5, 5], pointRadius: 0, tension: 0.2 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { 
+                            position: 'top',
+                            align: 'end',
+                            labels: { 
+                                color: '#e2e8f0', 
+                                usePointStyle: true, 
+                                boxWidth: 10,
+                                padding: 16,
+                                generateLabels: (chart) => {
+                                    const labels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+                                    labels.forEach(label => {
+                                        if (label.text.includes('Benchmark Model')) {
+                                            label.lineDash = [4, 4];
+                                        }
+                                    });
+                                    return labels;
+                                }
+                            }
+                        } 
+                    },
+                    scales: { 
+                        x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
+                        y: { 
+                            title: { display: true, text: 'PFC HbO Change (µM)', color: '#cbd5e1' }, 
+                            ticks: { color: '#94a3b8' }, 
+                            grid: { color: '#1e293b' },
+                            min: 0.3,
+                            max: 3.5
+                        } 
+                    }
+                }
+            });
+        }
+
+        const quizModal = document.getElementById('quiz-modal');
+        const quizBtn = document.getElementById('quiz-btn');
+        const emptyStateEl = document.getElementById('quiz-results-empty');
+        const activeStateEl = document.getElementById('quiz-results-active');
+
+        function resetQuizModalState() {
+            if (quizModal) quizModal.classList.add('hidden');
+            if (emptyStateEl) {
+                emptyStateEl.classList.remove('hidden');
+                emptyStateEl.classList.add('flex');
+            }
+            if (activeStateEl) {
+                activeStateEl.classList.add('hidden');
+                activeStateEl.classList.remove('flex');
+            }
+        }
+
+        if (quizBtn) {
+            quizBtn.onclick = () => {
+                if (!activeSession) return;
+                quizBtn.classList.remove('animate-pulse');
+                if (quizModal) quizModal.classList.remove('hidden');
+            };
+        }
+
+        const closeQuizBtn = document.getElementById('close-quiz');
+        if (closeQuizBtn) closeQuizBtn.onclick = resetQuizModalState;
+
+        const modalDoneBtn = document.getElementById('modal-done-btn');
+        if (modalDoneBtn) modalDoneBtn.onclick = resetQuizModalState;
+
+        const totalItemsEl = document.getElementById('total-items');
+        const quizErrEl = document.getElementById('quiz-input-error');
+        const submitQuizBtn = document.getElementById('submit-quiz');
+
+        if (submitQuizBtn) {
+            submitQuizBtn.onclick = async () => {
+                if (!activeSession) return;
+                const total = parseInt(totalItemsEl.value, 10);
+                const correct = parseInt(document.getElementById('correct-items').value, 10);
+
+                if (isNaN(total) || isNaN(correct) || total <= 0 || total > 300 || correct < 0 || correct > total) {
+                    if (quizErrEl) {
+                        quizErrEl.classList.remove('hidden');
+                        quizErrEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Total questions must be between 1 and 300, and correct answers cannot exceed total items.';
+                    }
+                    return;
+                }
+                if (quizErrEl) quizErrEl.classList.add('hidden');
+
+                const retention = (correct / total) * 100;
+                const load = activeSession.load;
+                const efficiency = Math.min(100.0, Math.max(10.0, (retention / ((load / 2.5) * 100)) * 75.0));
+                const testType = document.getElementById('test-type').value;
+
+                document.getElementById('res-retention-score').innerText = `${retention.toFixed(1)}%`;
+                document.getElementById('res-efficiency-index').innerText = `${efficiency.toFixed(1)}%`;
+
+                let recommendation = "";
+                if (efficiency >= 80) {
+                    recommendation = "Optimal Cognitive Efficiency: High memory retention achieved relative to your PFC hemodynamic load. Keep this pacing for study intervals.";
+                } else if (efficiency >= 55) {
+                    recommendation = "Moderate Efficiency: Good performance, but PFC activation was high. Consider taking a 10-minute rest break before your next review block.";
+                } else {
+                    recommendation = "Sub-optimal Efficiency: High neural expenditure with lower retention. Try shortening custom scan blocks or incorporating structured breaks.";
+                }
+                document.getElementById('res-recommendation-text').innerText = recommendation;
+
+                if (emptyStateEl) {
+                    emptyStateEl.classList.add('hidden');
+                    emptyStateEl.classList.remove('flex');
+                }
+                if (activeStateEl) {
+                    activeStateEl.classList.remove('hidden');
+                    activeStateEl.classList.add('flex');
+                }
+
+                sessionHistory.unshift({
+                    timestamp: activeSession.timestamp,
+                    method: activeSession.methodName,
+                    load: `${load.toFixed(2)} µM`,
+                    testType: testType,
+                    retention: `${retention.toFixed(1)}%`,
+                    efficiency: `${efficiency.toFixed(1)}%`
+                });
+
+                updateHistoryLog();
+
+                if (isHistorySavingEnabled()) {
+                    await saveHistoryToStorage();
+                }
+            };
+        }
+
+        document.getElementById('clear-logs-btn').onclick = async () => {
+            sessionHistory = [];
+            updateHistoryLog();
+            await clearStoredHistory();
+        };
+
+        function updateHistoryLog() {
+            const tbody = document.getElementById('history-log-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (sessionHistory.length === 0) {
+                tbody.innerHTML = `
+                    <tr id="empty-log-row">
+                        <td colspan="6" class="p-6 text-center italic text-muted">No simulation logs recorded yet. Run a session above to generate data.</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            sessionHistory.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = "transition";
+                row.innerHTML = `
+                    <td class="p-3 font-mono text-muted">${item.timestamp}</td>
+                    <td class="p-3 font-semibold">${item.method}</td>
+                    <td class="p-3 font-mono">${item.load}</td>
+                    <td class="p-3">${item.testType}</td>
+                    <td class="p-3 font-mono text-warning font-semibold">${item.retention}</td>
+                    <td class="p-3 font-mono text-success font-bold">${item.efficiency}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        const authModal = document.getElementById('auth-modal');
+        const authForm = document.getElementById('auth-form');
+        const authEmailEl = document.getElementById('auth-email');
+        const authPasswordEl = document.getElementById('auth-password');
+        const authConfirmWrap = document.getElementById('auth-confirm-wrap');
+        const authConfirmEl = document.getElementById('auth-confirm');
+        const authMessageEl = document.getElementById('auth-message');
+        const authSubmitBtn = document.getElementById('auth-submit');
+        const authModalTitleEl = document.getElementById('auth-modal-title');
+        const tabSignInEl = document.getElementById('tab-signin');
+        const tabSignUpEl = document.getElementById('tab-signup');
+        const authAreaEl = document.getElementById('auth-area');
+
+        let authMode = 'signin';
+        let supabaseClient = null;
+        let currentUser = null;
+
+        function isAuthConfigured() {
+            const cfg = window.MINDMAP_SUPABASE || {};
+            return !!(
+                cfg.url && cfg.anonKey &&
+                !String(cfg.url).includes('YOUR_') &&
+                !String(cfg.anonKey).includes('YOUR_')
+            ) && typeof window.supabase !== 'undefined';
+        }
+
+        function setAuthMessage(text, type) {
+            if (!text) {
+                authMessageEl.innerText = '';
+                authMessageEl.className = 'hidden';
+                return;
+            }
+            const tone = type === 'error' ? 'text-red-400' : type === 'success' ? 'text-success' : 'text-warning';
+            authMessageEl.innerText = text;
+            authMessageEl.className = 'text-[11px] leading-relaxed ' + tone;
+        }
+
+        function setAuthMode(mode) {
+            authMode = mode;
+            const signup = mode === 'signup';
+
+            authModalTitleEl.innerText = signup ? 'Create Account' : 'Sign In';
+            authSubmitBtn.innerText = signup ? 'Create Account' : 'Sign In';
+            authConfirmWrap.classList.toggle('hidden', !signup);
+            authPasswordEl.setAttribute('autocomplete', signup ? 'new-password' : 'current-password');
+
+            tabSignInEl.className = 'py-2 rounded-lg text-sm font-semibold cursor-pointer ' + (signup ? 'text-muted' : 'app-button-blue');
+            tabSignUpEl.className = 'py-2 rounded-lg text-sm font-semibold cursor-pointer ' + (signup ? 'app-button-blue' : 'text-muted');
+
+            setAuthMessage('');
+        }
+
+        function renderAuthState() {
+            authAreaEl.innerHTML = '';
+
+            if (currentUser) {
+                const email = currentUser.email || 'Signed in';
+                const wrap = document.createElement('div');
+                wrap.className = 'flex items-center gap-2';
+
+                const avatar = document.createElement('span');
+                avatar.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold status-success';
+                avatar.textContent = (email.charAt(0) || '?').toUpperCase();
+                avatar.title = email;
+
+                const label = document.createElement('span');
+                label.className = 'hidden md:block text-xs text-muted max-w-[160px] truncate';
+                label.textContent = email;
+                label.title = email;
+
+                const signOutBtn = document.createElement('button');
+                signOutBtn.className = 'text-xs px-2.5 py-1.5 rounded-lg border transition cursor-pointer text-muted hover:text-white';
+                signOutBtn.style.borderColor = 'var(--border-color)';
+                signOutBtn.title = 'Sign out';
+                signOutBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket"></i>';
+                signOutBtn.onclick = signOut;
+
+                wrap.append(avatar, label, signOutBtn);
+                authAreaEl.appendChild(wrap);
+            } else {
+                const signInBtn = document.createElement('button');
+                signInBtn.className = 'text-xs font-semibold px-3 py-2 rounded-lg cursor-pointer app-button-blue';
+                signInBtn.innerHTML = '<i class="fa-solid fa-user"></i> Sign in';
+                signInBtn.onclick = openAuthModal;
+                authAreaEl.appendChild(signInBtn);
+            }
+        }
+
+        function openAuthModal() {
+            authForm.reset();
+            setAuthMode('signin');
+            if (!supabaseClient) {
+                setAuthMessage('Sign-in is not configured yet. Add your Supabase project URL and publishable key to supabase-config.js.', 'warning');
+            }
+            authModal.classList.remove('hidden');
+            authEmailEl.focus();
+        }
+
+        function closeAuthModal() {
+            authModal.classList.add('hidden');
+            setAuthMessage('');
+        }
+
+        function setAuthBusy(busy) {
+            authSubmitBtn.disabled = busy;
+            authSubmitBtn.classList.toggle('opacity-60', busy);
+            authSubmitBtn.classList.toggle('cursor-not-allowed', busy);
+        }
+
+        async function signOut() {
+            if (!supabaseClient) return;
+            await supabaseClient.auth.signOut();
+            window.location.href = 'index.html';
+        }
+
+        document.getElementById('close-auth').onclick = closeAuthModal;
+        tabSignInEl.onclick = () => setAuthMode('signin');
+        tabSignUpEl.onclick = () => setAuthMode('signup');
+
+        authModal.addEventListener('click', (event) => {
+            if (event.target === authModal) closeAuthModal();
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !authModal.classList.contains('hidden')) closeAuthModal();
+        });
+
+        authForm.onsubmit = async (event) => {
+            event.preventDefault();
+
+            if (!supabaseClient) {
+                setAuthMessage('Sign-in is not configured yet. Add your Supabase project URL and publishable key to supabase-config.js.', 'error');
+                return;
+            }
+
+            const email = authEmailEl.value.trim();
+            const password = authPasswordEl.value;
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                setAuthMessage('Enter a valid email address.', 'error');
+                return;
+            }
+            if (password.length < 8) {
+                setAuthMessage('Password must be at least 8 characters.', 'error');
+                return;
+            }
+            if (authMode === 'signup' && password !== authConfirmEl.value) {
+                setAuthMessage('Passwords do not match.', 'error');
+                return;
+            }
+
+            setAuthBusy(true);
+            try {
+                if (authMode === 'signup') {
+                    const { data, error } = await supabaseClient.auth.signUp({
+                        email: email,
+                        password: password,
+                        options: { emailRedirectTo: window.location.href.split('#')[0] }
+                    });
+                    if (error) throw error;
+
+                    if (data.session) {
+                        localStorage.removeItem('mindmap_privacy_acknowledged');
+                        const toast = document.getElementById('privacy-toast');
+                        if (toast) toast.classList.remove('hidden');
+                        setAuthMessage('Account created. You are signed in.', 'success');
+                        setTimeout(() => { window.location.href = 'MindMapWeb.html'; }, 1000);
+                    } else {
+                        setAuthMessage('Account created. Check your inbox to confirm your email, then sign in.', 'success');
+                        authForm.reset();
+                    }
+                } else {
+                    const { error } = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
+                    if (error) throw error;
+                    localStorage.removeItem('mindmap_privacy_acknowledged');
+                    const toast = document.getElementById('privacy-toast');
+                    if (toast) toast.classList.remove('hidden');
+                    closeAuthModal();
+                    window.location.href = 'MindMapWeb.html';
+                }
+            } catch (error) {
+                setAuthMessage(error.message || 'Something went wrong. Please try again.', 'error');
+            } finally {
+                setAuthBusy(false);
+            }
+        };
+
+        async function initAuth() {
+            renderAuthState();
+
+            if (!isAuthConfigured()) {
+                console.warn('Supabase auth is not configured: set url and anonKey in supabase-config.js.');
+                return;
+            }
+
+            supabaseClient = window.supabase.createClient(window.MINDMAP_SUPABASE.url, window.MINDMAP_SUPABASE.anonKey);
+
+            const { data } = await supabaseClient.auth.getSession();
+            const previousUserId = currentUser ? currentUser.id : null;
+            currentUser = data.session ? data.session.user : null;
+
+            if (currentUser) {
+                localStorage.removeItem('mindmap_privacy_acknowledged');
+                const toast = document.getElementById('privacy-toast');
+                if (toast) toast.classList.remove('hidden');
+            }
+
+            renderAuthState();
+            await handleAuthUserChange(previousUserId);
+
+            supabaseClient.auth.onAuthStateChange((_event, session) => {
+                const previousId = currentUser ? currentUser.id : null;
+                currentUser = session ? session.user : null;
+
+                if (currentUser) {
+                    localStorage.removeItem('mindmap_privacy_acknowledged');
+                    const toast = document.getElementById('privacy-toast');
+                    if (toast) toast.classList.remove('hidden');
+                    closeAuthModal();
+                }
+
+                renderAuthState();
+                handleAuthUserChange(previousId);
+            });
+        }
+
+        async function handleAuthUserChange(previousUserId) {
+            const nextUserId = currentUser ? currentUser.id : null;
+            if (nextUserId === previousUserId) return;
+            await restoreHistoryState();
+        }
+
+        initAuth();
+        restoreHistoryState();
+        initPrivacyNotice();
+        loadStudyData();
+    </script>
+</body>
+</html>

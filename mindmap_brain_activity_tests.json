@@ -1,0 +1,76 @@
+{
+  "study_methods": [
+    {
+      "id": "lecture_no_notes",
+      "name": "Lecture Only (No Notes)",
+      "duration_minutes": 30,
+      "recommended_duration_minutes": 30,
+      "test_delay_hours": 1,
+      "baseline_activation_pfc": 1.5,
+      "description": "Continuous listening to a live or recorded lecture without pausing or transcribing."
+    },
+    {
+      "id": "lecture_with_notes",
+      "name": "Lecture & Structured Notes",
+      "duration_minutes": 35,
+      "recommended_duration_minutes": 35,
+      "test_delay_hours": 1,
+      "baseline_activation_pfc": 2.4,
+      "description": "Active listening combined with synthesizing and structuring notes during presentation."
+    },
+    {
+      "id": "audiobook_podcast",
+      "name": "Audiobook / Podcast Listening",
+      "duration_minutes": 25,
+      "recommended_duration_minutes": 25,
+      "test_delay_hours": 1,
+      "baseline_activation_pfc": 1.7,
+      "description": "Narrated audio content consumed continuously, often during secondary activities."
+    },
+    {
+      "id": "reading_no_notes",
+      "name": "Single-Pass Reading (No Notes)",
+      "duration_minutes": 20,
+      "recommended_duration_minutes": 20,
+      "test_delay_hours": 2,
+      "baseline_activation_pfc": 2.2,
+      "description": "Reading textbook chapters or articles from start to finish without highlighting or annotation."
+    },
+    {
+      "id": "reading_with_notes",
+      "name": "Active Reading & Summary Notes",
+      "duration_minutes": 40,
+      "recommended_duration_minutes": 40,
+      "test_delay_hours": 1,
+      "baseline_activation_pfc": 2.7,
+      "description": "Engaged text analysis accompanied by written margin annotations and summary notes."
+    },
+    {
+      "id": "video_lecture_passive",
+      "name": "Video Lecture (No Interaction)",
+      "duration_minutes": 30,
+      "recommended_duration_minutes": 30,
+      "test_delay_hours": 1,
+      "baseline_activation_pfc": 2.0,
+      "description": "Watching instructional recordings at standard speed without active recall pauses."
+    },
+    {
+      "id": "video_lecture_with_notes",
+      "name": "Video Lecture & Structured Notes",
+      "duration_minutes": 35,
+      "recommended_duration_minutes": 35,
+      "test_delay_hours": 1,
+      "baseline_activation_pfc": 2.6,
+      "description": "Watching instructional recordings while actively pausing and transcribing structured notes."
+    },
+    {
+      "id": "worked_examples",
+      "name": "Observing Worked Examples",
+      "duration_minutes": 25,
+      "recommended_duration_minutes": 25,
+      "test_delay_hours": 2,
+      "baseline_activation_pfc": 2.5,
+      "description": "Reviewing step-by-step solved problem sets or code walkthroughs without writing out steps."
+    }
+  ]
+}

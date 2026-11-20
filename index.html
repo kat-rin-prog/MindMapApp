@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindMap - Empowering Student Success Through Data-Driven Learning</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <header class="app-header py-4 shadow-md backdrop-blur-md sticky top-0 z-30">
+        <div class="max-w-6xl mx-auto px-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="#" class="block focus:outline-none">
+                    <img src="logoMM.png" alt="MindMap Logo" class="w-10 h-10 rounded-xl shadow-lg shadow-blue-500/30 object-cover">
+                </a>
+                <div>
+                    <h1 class="text-xl font-bold flex items-center gap-2">
+                        MindMap
+                    </h1>
+                    <p class="text-xs text-muted">Prefrontal Cortex Hemodynamic Encoding Tracker</p>
+                </div>
+            </div>
+            
+            <div id="auth-area" class="flex items-center gap-2">
+                <button id="open-auth-nav" class="text-xs px-4 py-2 rounded-xl font-medium app-button-blue transition flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-right-to-bracket"></i> Sign In
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-12 flex-grow w-full grid gap-8">
+        
+        <section class="app-card p-8 rounded-3xl shadow-2xl text-center grid gap-6">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full status-success mx-auto text-xs font-medium">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Neurotechnology & Learning Analytics
+            </div>
+            <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight">
+                Empowering Student Success Through<br><span class="text-blue">Data-Driven Learning</span>
+            </h2>
+            <p class="text-sm md:text-base text-muted max-w-2xl mx-auto leading-relaxed">
+                In today’s fast-paced world, students face increasing challenges in maintaining concentration, processing information, and learning effectively. MindMap seeks to address these challenges by promoting personalized and evidence-based learning. The prototype integrates wearable brain-monitoring technology with memory retention assessments to investigate the impact of various study strategies on cognitive activity and learning outcomes.
+            </p>
+            <div class="flex flex-wrap items-center justify-center gap-4 pt-2">
+                <button id="launch-app-btn" class="font-semibold py-3.5 px-8 rounded-xl transition flex items-center gap-2 cursor-pointer text-sm app-button-blue shadow-lg">
+                    <i class="fa-solid fa-play"></i> Launch Web Application
+                </button>
+            </div>
+        </section>
+
+        <section class="app-card p-6 md:p-8 rounded-2xl shadow-xl grid gap-6">
+            <h3 class="text-lg font-bold flex items-center gap-2 border-b border-slate-800 pb-3">
+                <i class="fa-solid fa-brain text-blue"></i> How It Works
+            </h3>
+            <p class="text-xs md:text-sm text-muted leading-relaxed">
+                MindMap is a wearable neurotechnology device that helps students identify effective learning strategies by monitoring brain activity and testing memory retention.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="app-subpanel p-4 rounded-xl grid gap-2">
+                    <div class="text-blue text-lg"><i class="fa-solid fa-wave-square"></i></div>
+                    <h4 class="font-bold text-sm">fNIRS Technology</h4>
+                    <p class="text-xs text-muted leading-relaxed">Employs functional near-infrared spectroscopy to monitor fluctuations in oxygenated (HbO) and deoxygenated (HbR) hemoglobin within the prefrontal cortex during learning activities.</p>
+                </div>
+                <div class="app-subpanel p-4 rounded-xl grid gap-2">
+                    <div class="text-success text-lg"><i class="fa-solid fa-laptop-code"></i></div>
+                    <h4 class="font-bold text-sm">Interactive Simulator</h4>
+                    <p class="text-xs text-muted leading-relaxed">Test different study methods, view real-time cortical curves, complete quizzes, and calculate your Cognitive Efficiency Index.</p>
+                </div>
+                <div class="app-subpanel p-4 rounded-xl grid gap-2">
+                    <div class="text-warning text-lg"><i class="fa-solid fa-chart-pie"></i></div>
+                    <h4 class="font-bold text-sm">Personalized Insights</h4>
+                    <p class="text-xs text-muted leading-relaxed">Combine physiological measurements with quiz performance to generate personalized, evidence-based study recommendations.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="app-card p-6 md:p-8 rounded-2xl shadow-xl grid gap-6">
+            <h3 class="text-lg font-bold flex items-center gap-2 border-b border-slate-800 pb-3">
+                <i class="fa-solid fa-users text-blue"></i> Our Team
+            </h3>
+            <p class="text-xs md:text-sm text-muted leading-relaxed">
+                MindMap was conceptualized and developed by a dedicated team of student researchers:
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+                <div class="app-subpanel p-3 rounded-lg border">
+                    <p class="font-bold text-white">Małgorzata Białkowska</p>
+                    <p class="text-muted mt-0.5">Team Leader - Integration, Ethics & User Design</p>
+                </div>
+                <div class="app-subpanel p-3 rounded-lg border">
+                    <p class="font-bold text-white">Kateryna Rolinska</p>
+                    <p class="text-muted mt-0.5">Data Science & Algorithms</p>
+                </div>
+                <div class="app-subpanel p-3 rounded-lg border">
+                    <p class="font-bold text-white">Fatima Imran Ali</p>
+                    <p class="text-muted mt-0.5">fNIRS & Neurotechnology</p>
+                </div>
+                <div class="app-subpanel p-3 rounded-lg border">
+                    <p class="font-bold text-white">Radhika Mandlik</p>
+                    <p class="text-muted mt-0.5">Learning Science & Psychology</p>
+                </div>
+                <div class="app-subpanel p-3 rounded-lg border">
+                    <p class="font-bold text-white">Rudhronil Bardhan</p>
+                    <p class="text-muted mt-0.5">Hardware & Software Integration</p>
+                </div>
+                <div class="app-subpanel p-3 rounded-lg border">
+                    <p class="font-bold text-white">Zerah N.</p>
+                    <p class="text-muted mt-0.5">Neuroscience - Learning & Memory</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="app-card p-6 md:p-8 rounded-2xl shadow-xl grid gap-4">
+            <h3 class="text-lg font-bold flex items-center gap-2">
+                <i class="fa-solid fa-shield-halved text-success"></i> Privacy & Safety
+            </h3>
+            <p class="text-xs md:text-sm text-muted leading-relaxed">
+                User safety and data privacy are our top priorities. Your personal data is only gathered to be analysed. All the data gathered is stored safely; we ensure the highest level of privacy for our users through encrypted communication, secure data storage, and informed consent. MindMap is designed to support learning, never to diagnose medical conditions or label individuals.
+            </p>
+        </section>
+    </main>
+
+    <div id="auth-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+        <div class="app-card border w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            <div class="app-header border-b px-6 py-4 flex items-center justify-between">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-user-shield text-blue"></i> <span id="auth-modal-title">Sign In</span>
+                </h3>
+                <button id="close-auth" class="text-xl font-bold cursor-pointer text-muted" aria-label="Close">&times;</button>
+            </div>
+
+            <div class="p-6 grid gap-4">
+                <div class="grid grid-cols-2 gap-2 app-subpanel p-1 rounded-xl">
+                    <button type="button" id="tab-signin" class="py-2 rounded-lg text-sm font-semibold cursor-pointer">Sign In</button>
+                    <button type="button" id="tab-signup" class="py-2 rounded-lg text-sm font-semibold cursor-pointer text-muted">Create Account</button>
+                </div>
+
+                <form id="auth-form" class="grid gap-3" novalidate>
+                    <div>
+                        <label for="auth-email" class="block text-xs font-bold uppercase tracking-wider mb-1 text-muted">Email</label>
+                        <input type="email" id="auth-email" autocomplete="email" placeholder="you@example.com" class="app-input w-full rounded-lg p-2.5 text-sm outline-none">
+                    </div>
+                    <div>
+                        <label for="auth-password" class="block text-xs font-bold uppercase tracking-wider mb-1 text-muted">Password</label>
+                        <input type="password" id="auth-password" autocomplete="current-password" placeholder="At least 8 characters" class="app-input w-full rounded-lg p-2.5 text-sm outline-none">
+                    </div>
+                    <div id="auth-confirm-wrap" class="hidden">
+                        <label for="auth-confirm" class="block text-xs font-bold uppercase tracking-wider mb-1 text-muted">Confirm Password</label>
+                        <input type="password" id="auth-confirm" autocomplete="new-password" placeholder="Repeat your password" class="app-input w-full rounded-lg p-2.5 text-sm outline-none">
+                    </div>
+                    <p id="auth-message" class="hidden"></p>
+                    <button type="submit" id="auth-submit" class="w-full py-2.5 rounded-lg text-sm cursor-pointer app-button-blue">Sign In</button>
+                </form>
+
+                <p class="text-[11px] leading-relaxed text-center text-muted">
+                    Email + password accounts are created specifically for MindMap fNIRS.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="app-header py-4 px-4 mt-8 border-t border-slate-800 text-center text-xs text-muted">
+        <p>&copy; 2026 MindMap Project. All rights reserved. Designed for data-driven learning research.</p>
+    </footer>
+
+    <script>
+        const authModal = document.getElementById('auth-modal');
+        const authForm = document.getElementById('auth-form');
+        const authEmailEl = document.getElementById('auth-email');
+        const authPasswordEl = document.getElementById('auth-password');
+        const authConfirmWrap = document.getElementById('auth-confirm-wrap');
+        const authConfirmEl = document.getElementById('auth-confirm');
+        const authMessageEl = document.getElementById('auth-message');
+        const authSubmitBtn = document.getElementById('auth-submit');
+        const authModalTitleEl = document.getElementById('auth-modal-title');
+        const tabSignInEl = document.getElementById('tab-signin');
+        const tabSignUpEl = document.getElementById('tab-signup');
+        const authAreaEl = document.getElementById('auth-area');
+        const launchBtn = document.getElementById('launch-app-btn');
+        const openAuthNavBtn = document.getElementById('open-auth-nav');
+
+        let authMode = 'signin';
+        let supabaseClient = null;
+        let currentUser = null;
+
+        function isAuthConfigured() {
+            const cfg = window.MINDMAP_SUPABASE || {};
+            return !!(
+                cfg.url && cfg.anonKey &&
+                !String(cfg.url).includes('YOUR_') &&
+                !String(cfg.anonKey).includes('YOUR_')
+            ) && typeof window.supabase !== 'undefined';
+        }
+
+        function setAuthMessage(text, type) {
+            if (!text) {
+                authMessageEl.innerText = '';
+                authMessageEl.className = 'hidden';
+                return;
+            }
+            const tone = type === 'error' ? 'text-red-400' : type === 'success' ? 'text-success' : 'text-warning';
+            authMessageEl.innerText = text;
+            authMessageEl.className = 'text-[11px] leading-relaxed ' + tone;
+        }
+
+        function setAuthMode(mode) {
+            authMode = mode;
+            const signup = mode === 'signup';
+
+            authModalTitleEl.innerText = signup ? 'Create Account' : 'Sign In';
+            authSubmitBtn.innerText = signup ? 'Create Account' : 'Sign In';
+            authConfirmWrap.classList.toggle('hidden', !signup);
+            authPasswordEl.setAttribute('autocomplete', signup ? 'new-password' : 'current-password');
+
+            tabSignInEl.className = 'py-2 rounded-lg text-sm font-semibold cursor-pointer ' + (signup ? 'text-muted' : 'app-button-blue');
+            tabSignUpEl.className = 'py-2 rounded-lg text-sm font-semibold cursor-pointer ' + (signup ? 'app-button-blue' : 'text-muted');
+
+            setAuthMessage('');
+        }
+
+        function renderAuthState() {
+            authAreaEl.innerHTML = '';
+
+            if (currentUser) {
+                const email = currentUser.email || 'Signed in';
+                const wrap = document.createElement('div');
+                wrap.className = 'flex items-center gap-2';
+
+                const avatar = document.createElement('span');
+                avatar.className = 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold status-success';
+                avatar.textContent = (email.charAt(0) || '?').toUpperCase();
+                avatar.title = email;
+
+                const signOutBtn = document.createElement('button');
+                signOutBtn.className = 'text-xs px-2.5 py-2 rounded-lg border transition cursor-pointer text-muted hover:text-white';
+                signOutBtn.style.borderColor = 'var(--border-color)';
+                signOutBtn.title = 'Sign out';
+                signOutBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket"></i>';
+                signOutBtn.onclick = signOut;
+
+                wrap.append(avatar, signOutBtn);
+                authAreaEl.appendChild(wrap);
+            } else {
+                const signInBtn = document.createElement('button');
+                signInBtn.className = 'text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer app-button-blue transition flex items-center gap-2';
+                signInBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Sign In';
+                signInBtn.onclick = openAuthModal;
+                authAreaEl.appendChild(signInBtn);
+            }
+        }
+
+        function openAuthModal() {
+            authForm.reset();
+            setAuthMode('signin');
+            if (!supabaseClient) {
+                setAuthMessage('Sign-in is not configured yet. Add your Supabase project URL and publishable key to supabase-config.js.', 'warning');
+            }
+            authModal.classList.remove('hidden');
+            authEmailEl.focus();
+        }
+
+        function closeAuthModal() {
+            authModal.classList.add('hidden');
+            setAuthMessage('');
+        }
+
+        function setAuthBusy(busy) {
+            authSubmitBtn.disabled = busy;
+            authSubmitBtn.classList.toggle('opacity-60', busy);
+            authSubmitBtn.classList.toggle('cursor-not-allowed', busy);
+        }
+
+        async function signOut() {
+            if (!supabaseClient) return;
+            await supabaseClient.auth.signOut();
+        }
+
+        document.getElementById('close-auth').onclick = closeAuthModal;
+        if (openAuthNavBtn) openAuthNavBtn.onclick = openAuthModal;
+        tabSignInEl.onclick = () => setAuthMode('signin');
+        tabSignUpEl.onclick = () => setAuthMode('signup');
+
+        launchBtn.onclick = () => {
+            if (currentUser) {
+                window.location.href = 'MindMapWeb.html';
+            } else {
+                openAuthModal();
+            }
+        };
+
+        authModal.addEventListener('click', (event) => {
+            if (event.target === authModal) closeAuthModal();
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !authModal.classList.contains('hidden')) closeAuthModal();
+        });
+
+        authForm.onsubmit = async (event) => {
+            event.preventDefault();
+
+            if (!supabaseClient) {
+                setAuthMessage('Sign-in is not configured yet. Add your Supabase project URL and publishable key to supabase-config.js.', 'error');
+                return;
+            }
+
+            const email = authEmailEl.value.trim();
+            const password = authPasswordEl.value;
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                setAuthMessage('Enter a valid email address.', 'error');
+                return;
+            }
+            if (password.length < 8) {
+                setAuthMessage('Password must be at least 8 characters.', 'error');
+                return;
+            }
+            if (authMode === 'signup' && password !== authConfirmEl.value) {
+                setAuthMessage('Passwords do not match.', 'error');
+                return;
+            }
+
+            setAuthBusy(true);
+            try {
+                if (authMode === 'signup') {
+                    const { data, error } = await supabaseClient.auth.signUp({
+                        email: email,
+                        password: password,
+                        options: { emailRedirectTo: window.location.href.split('#')[0] }
+                    });
+                    if (error) throw error;
+
+                    if (data.session) {
+                        setAuthMessage('Account created. You are signed in.', 'success');
+                        setTimeout(() => { window.location.href = 'MindMapWeb.html'; }, 1000);
+                    } else {
+                        setAuthMessage('Account created. Check your inbox to confirm your email, then sign in.', 'success');
+                        authForm.reset();
+                    }
+                } else {
+                    const { error } = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
+                    if (error) throw error;
+                    closeAuthModal();
+                    window.location.href = 'MindMapWeb.html';
+                }
+            } catch (error) {
+                setAuthMessage(error.message || 'Something went wrong. Please try again.', 'error');
+            } finally {
+                setAuthBusy(false);
+            }
+        };
+
+        async function initAuth() {
+            if (!isAuthConfigured()) {
+                console.warn('Supabase auth is not configured: set url and anonKey in supabase-config.js.');
+                renderAuthState();
+                return;
+            }
+
+            supabaseClient = window.supabase.createClient(window.MINDMAP_SUPABASE.url, window.MINDMAP_SUPABASE.anonKey);
+
+            const { data } = await supabaseClient.auth.getSession();
+            currentUser = data.session ? data.session.user : null;
+            renderAuthState();
+
+            supabaseClient.auth.onAuthStateChange((_event, session) => {
+                currentUser = session ? session.user : null;
+                renderAuthState();
+                if (currentUser) {
+                    closeAuthModal();
+                }
+            });
+        }
+
+        initAuth();
+    </script>
+</body>
+</html>
