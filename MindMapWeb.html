@@ -13,22 +13,22 @@
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <header class="app-header py-4 shadow-md backdrop-blur-md">
-        <div class="max-w-6xl mx-auto px-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <a href="#" class="block focus:outline-none">
-                    <img src="logoMM.png" alt="MindMap fNIRS Logo" class="w-10 h-10 rounded-xl shadow-lg shadow-blue-500/30 object-cover">
+    <header class="app-header py-4 px-4 shadow-md backdrop-blur-md w-full">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-2 sm:gap-3 overflow-hidden">
+                <a href="#" class="block focus:outline-none shrink-0">
+                    <img src="logoMM.png" alt="MindMap fNIRS Logo" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl shadow-lg shadow-blue-500/30 object-cover">
                 </a>
-                <div>
-                    <h1 class="text-xl font-bold flex items-center gap-2">
+                <div class="min-w-0">
+                    <h1 class="text-base sm:text-xl font-bold truncate flex items-center gap-2">
                         MindMap fNIRS Simulator
                     </h1>
-                    <p class="text-xs text-muted">Prefrontal Cortex Hemodynamic Encoding Tracker</p>
+                    <p class="text-[10px] sm:text-xs text-muted truncate">Prefrontal Cortex Hemodynamic Encoding Tracker</p>
                 </div>
             </div>
             
-            <div class="flex items-center gap-3">
-                <span id="user-status-badge" class="text-xs px-3 py-1.5 rounded-full font-medium items-center gap-2 status-success hidden sm:flex">
+            <div class="flex items-center gap-2 shrink-0">
+                <span id="user-status-badge" class="text-xs px-3 py-1.5 rounded-full font-medium items-center gap-2 status-success hidden md:flex">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Optode Array Calibrated
                 </span>
                 <div id="auth-area" class="flex items-center gap-2"></div>
